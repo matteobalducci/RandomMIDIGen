@@ -1,0 +1,84 @@
+import os
+import random
+from midiutil import MIDIFile
+
+# Mappatura delle note in stringa ai loro valori MIDI
+note_to_midi = {
+    "C4": 60, "C#4": 61, "D4": 62, "D#4": 63, "E4": 64, "F4": 65, "F#4": 66, "G4": 67,
+    "G#4": 68, "A4": 69, "A#4": 70, "B4": 71, "C5": 72, "C#5": 73, "D5": 74, "D#5": 75,
+    "E5": 76, "F5": 77, "F#5": 78, "G5": 79, "G#5": 80, "A5": 81
+}
+
+# Scale maggiori e minori
+scale = {
+    "C Maggiore": ["C4", "D4", "E4", "F4", "G4", "A4", "B4"],
+    "C Minore": ["C4", "D4", "D#4", "F4", "G4", "G#4", "A#4"],
+    "D Maggiore": ["D4", "E4", "F#4", "G4", "A4", "B4", "C5"],
+    "D Minore": ["D4", "E4", "F4", "G4", "A4", "A#4", "C5"],
+    "E Maggiore": ["E4", "F#4", "G#4", "A4", "B4", "C#5", "D#5"],
+    "E Minore": ["E4", "F#4", "G4", "A4", "B4", "C5", "D5"],
+    "F": ["F4", "G4", "A4", "A#4", "C5", "D5", "E5"],
+    "F#": ["F#4", "G#4", "A#4", "B4", "C#5", "D#5", "F5"],
+    "G": ["G4", "A4", "B4", "C5", "D5", "E5", "F#5"],
+    "G#": ["G#4", "A#4", "C5", "C#5", "D#5", "F5", "G5"],
+    "A": ["A4", "B4", "C#5", "D5", "E5", "F#5", "G#5"],
+    "A#": ["A#4", "C5", "D5", "D#5", "F5", "G5", "A5"],
+    "B": ["B4", "C#5", "D#5", "E5", "F#5", "G#5", "A#5"]
+
+}
+
+def generate_melody(key):
+    melody = []
+    for i in range(8):
+        melody.append(random.choice(scale[key]))
+    return melody
+
+def generate_success_message():
+    messages = [
+        "Grandioso, FAM!",
+        "Stupendo lavoro!",
+        "Sei un genio, FAM!",
+        "Bravo, stai andando alla grande!",
+        "Un'altra hit, FAM!",
+        "Ascolta quella vibrazione!",
+        "Unlucky FAM approva!",
+        "Stai bruciando le tracce, FAM!",
+        "Questo è fuoco, FAM!",
+        "FAM, sei inarrestabile!"
+    ]
+    return random.choice(messages)
+
+while True:
+    keys = list(scale.keys())
+    print("\nScegli la chiave per la tua melodia:")
+    for i, key in enumerate(keys, 1):
+        print(f"{i}: {key}")
+    
+    try:
+        key_choice = keys[int(input("Inserisci il numero corrispondente alla tua scelta: ")) - 1]
+    except (ValueError, IndexError):
+        print("Scelta non valida. Riprova.")
+        continue
+    
+    my_melody = generate_melody(key_choice)
+
+    midi = MIDIFile(1)
+    track = 0
+    time = 0
+    midi.addTrackName(track, time, "Melody Track")
+    midi.addTempo(track, time, 120)
+
+    for note in my_melody:
+        midi_note = note_to_midi[note]  # Converti la nota in stringa nel suo valore MIDI
+        midi.addNote(track, 0, midi_note, time, 1, 100)  # track, channel, pitch, time, duration, volume
+        time += 1
+
+    # Salvare il MIDI
+    if not os.path.exists("Output MIDI Gen"):
+        os.makedirs("Output MIDI Gen")
+
+    with open(os.path.join("Output MIDI Gen", f"melody_{key_choice}_{random.randint(0, 10000)}.mid"), "wb") as midi_file:
+        midi.writeFile(midi_file)
+
+    print(f"Melodia generata in chiave {key_choice} e salvata!")
+    print(f"\nUnlucky FAM dice: {generate_success_message()}")
